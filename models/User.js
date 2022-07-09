@@ -1,20 +1,26 @@
 const { Model, DataTypes } = require('sequelize');
 const sequelize = require('../config/connection');
+const bcrypt = require('bcrypt');
 //First, we imported the Model class and DataTypes object from Sequelize. 
 //This Model class is what we create our own models from using the extends keyword so User inherits all of the functionality the Model class has.
 
 
 // create our User model
-class User extends Model {}
+class User extends Model {
+  //set up method to run on instance data (per user) to check password
+  checkPassword(loginPw) {
+    return bcrypt.compareSync(loginPw, this.password);
+  }
+}
 
 // create fields/columns for User model
 User.init(
-//Once we create the User class, we use the .init() method to initialize the model's data and configuration, passing in two objects as arguments. 
-//The first object will define the columns and data types for those columns. The second object it accepts configures certain options for the table
+  //Once we create the User class, we use the .init() method to initialize the model's data and configuration, passing in two objects as arguments. 
+  //The first object will define the columns and data types for those columns. The second object it accepts configures certain options for the table
   {
     // define id column
     id: {
-      type: DataTypes.INTEGER, 
+      type: DataTypes.INTEGER,
       allowNull: false, //this is the equivalent of SQL 'NOT NULL'
       primaryKey: true, //instruct that this is the primary key
       autoIncrement: true //turn on aout increment
@@ -30,7 +36,7 @@ User.init(
       allowNull: false,
       unique: true, //there cannot be any duplicate email values in this table
       validate: {
-    //if allowNull is set to false, we can run our data through validators before creating the table data
+        //if allowNull is set to false, we can run our data through validators before creating the table data
         isEmail: true
       }
     },
@@ -43,8 +49,35 @@ User.init(
       }
     }
   },
+  //{
+  //The nested level of the object inserted is very important. 
+  //Notice that the hooks property was added to the second object in User.init().
+  //hooks: {
+  //set up beforeCreate lifecycle "hook" functionality
+  //beforeCreate(userData) {
+  //We use the beforeCreate() hook to execute the bcrypt hash function on the plaintext password.
+  //return bcrypt.hash(userData.password, 10).then(newUserData => {
+  //In the bcrypt hash function, we pass in the userData object that contains the plaintext password in the password property. 
+  //We also pass in a saltRound value of 10.
+  //return newUserData
+  //The resulting hashed password is then passed to the Promise object as a newUserData object with a hashed password property
+  //The return statement then exits out of the function, returning the hashed password in the newUserData function.
+  //});
+  //}
+  //},
   {
-     //pass in our imported sequelize connections (the direct connection to our database)
+    hooks: {
+      async beforeCreate(newUserData) {
+        newUserData.password = await bcrypt.hash(newUserData.password, 10);
+        return newUserData;
+      },
+      //set up beforeUpdate lifecycle "hook" functionality
+      async beforeUpdate(updatedUserData) {
+        updatedUserData.password = await bcrypt.hash(updatedUserData.password, 10);
+        return updatedUserData;
+      }
+    },
+    //pass in our imported sequelize connections (the direct connection to our database)
     sequelize,
     //dont automatically create createdAT/updatedAT timestamp fields
     timestamps: false,
@@ -56,56 +89,5 @@ User.init(
     modelName: 'user'
   }
 );
-
-// const { Model, DataTypes} = require('sequelize');
-// const sequelize = require('../config/connection');
-// 
-// //create our User model
-// class User extends Model {}
-
-// //define table columns and configuration
-// User.init(
-
-//         // TABLE COLUMN DEFIFNITIONS GO HERE
-//         
-//         id: {
-//             //use the special Sequelize Datatypes object provide what type of data it is
-//             type: DataTypes.INTEGER,
-//             
-//             allowNull: false,
-//             
-//             primaryKey: true,
-//             
-//             autoIncrement: true
-//         },
-//         
-//         username: {
-//             type: DataTypes.STRING,
-//             allowNull: false
-//         },
-//          
-//         email: {
-//             type: DataTypes.STRING,
-//             allowNull: false,
-//             
-//             unique: true,
-//             
-//             validate: {
-//                 isEmail: true 
-//             }
-//         },
-//          
-//         password: {
-//             type: DataTypes.STRING,
-//             allowNull: false,
-//             validate: {
-//                 
-//                 len: [4]
-//             }
-//         }
-//     },
-//     {
-//         // TABLE CONFIGURATION OPTIONS GO HERE (https://sequelize.org/v5/manual/models-definition.html#configuration))
-
 
 module.exports = User;

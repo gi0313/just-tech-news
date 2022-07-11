@@ -13,7 +13,7 @@ app.use(express.urlencoded({extended: true}));
 app.use(routes);
 
 //turn on connection to db and server
-sequelize.sync({force: false}).then(() => {
+sequelize.sync({force: false}).then(() => { //This definition performs similarly to DROP TABLE IF EXISTS,
 //we use the sequelize.sync() method to establish the connection to the database
 //The "sync" part means that this is Sequelize taking the models and connecting them to associated database tables. If it doesn't find a table, it'll create it for you!
     app.listen(PORT, () => console.log('Now listening'));

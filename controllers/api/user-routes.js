@@ -1,5 +1,5 @@
 const router = require('express').Router();
-const { User } = require('../../models');
+const { User, Post, Vote } = require("../../models");
 
 //GET /api/users
 router.get('/', (req, res) => {
@@ -16,13 +16,25 @@ router.get('/', (req, res) => {
     })
 });
 
-//GET /api/users1
+//GET /api/users/1
 router.get('/:id', (req, res) => {
     User.findOne({
         attributes: {exclude: ['password']},
         where: {//to indicate we want to find a user where its id value equals whatever req.params.id is
             id: req.params.id //SELECT*FROM users WHERE id = 1
-        }
+        },
+            include: [
+                {
+                    model: Post,
+                    attributes: ['id', 'title', 'post_url', 'created_at']
+                },
+                {
+                    model: Post,
+                    attributes: ['title'],
+                    through: Vote,
+                    as: 'voted_posts'
+                }
+            ]
     })
     .then(dbUserData => {// if there is no user with that Id
         if(!dbUserData) {

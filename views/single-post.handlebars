@@ -16,7 +16,7 @@
 <script src="/javascript/upvote.js"></script>
 {{/if}}
 
-<div class="comments">
+{{> comments post.comments}}
   {{#each post.comments}}
   <section class="comment">
     <div class="meta">
@@ -30,4 +30,3 @@
 
   <script src="/javascript/comment.js"></script>
   <script src="/javascript/upvote.js"></script>
-</div>

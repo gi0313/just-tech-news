@@ -84,7 +84,8 @@ router.put('/upvote', (req, res) => {
   if (req.session) { //First, we're checking that a session exists before we even touch the database
     //pass session id along with all destructured properties on req.body
     Post.upvote({...req.body, user_id: req.session.user_id }, {Vote, Comment, User })
-//if a session does exist, we're using the saved user_id property on the session to insert a new record in the vote table.
+
+    //if a session does exist, we're using the saved user_id property on the session to insert a new record in the vote table.
     .then(updatedVoteData => res.json(updatedVoteData))
     .cath(err => {
       console.log(err);
